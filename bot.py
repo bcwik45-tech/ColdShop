@@ -78,7 +78,7 @@ class PurchaseView(discord.ui.View):
         self.add_item(PurchaseSelect(product_name, price_text))
 
 
-# --- 2. DEDYKOWANE PANEL SELEKCJI (BUNDLES / VPN) ---
+# --- 2. DEDYKOWANE PANELA SELEKCJI (BUNDLES / VPN) ---
 
 class BundleOnlySelect(discord.ui.Select):
     def __init__(self):
@@ -105,60 +105,4 @@ class BundleOnlySelect(discord.ui.Select):
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
-class VpnOnlySelect(discord.ui.Select):
-    def __init__(self):
-        options = [
-            discord.SelectOption(label="IP Vanish", description="Cena: €1 / 4.5zł (Year)", emoji="🛡️"),
-            discord.SelectOption(label="NexHub VPN", description="Zobacz ofertę NexHub VPN", emoji="🌐"),
-            discord.SelectOption(label="Windscribe VPN", description="Zobacz ofertę Windscribe VPN", emoji="🌀"),
-        ]
-        super().__init__(
-            placeholder="❌ × Click to select | Kliknij aby wybrać",
-            min_values=1,
-            max_values=1,
-            options=options
-        )
-
-    async def callback(self, interaction: discord.Interaction):
-        selected = self.values[0]
-        if selected == "IP Vanish":
-            embed = discord.Embed(
-                title="IPVAN$SH 🛡️",
-                color=discord.Color.from_rgb(0, 162, 232)
-            )
-            embed.add_field(name="» Ceny:", value="🛡️ **Year × €1 / 4.5zł**", inline=False)
-            embed.add_field(name="» Krótki Opis:", value="✅ » Full Access\n✅ » Gotowy do użycia", inline=False)
-            embed.set_footer(text="COLDSHOP • System VPN")
-            view = PurchaseView(product_name="IPVanish VPN", price_text="€1 / 4.5 zł")
-            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-        else:
-            embed = discord.Embed(
-                title=f"{selected} 🛡️",
-                description="» **Cena:** 5 PLN / Rok\n» **Dostęp:** Pełny dostęp do konta.",
-                color=discord.Color.from_rgb(0, 162, 232)
-            )
-            view = PurchaseView(product_name=selected, price_text="5 PLN")
-            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
-
-# --- 3. KOMENDY SETUPU PANELÓW ---
-
-@bot.tree.command(name="setup_bundle", description="Ustawia panel z ofertami Bundles.")
-@app_commands.checks.has_permissions(administrator=True)
-async def setup_bundle(interaction: discord.Interaction):
-    embed = discord.Embed(
-        title="📦 COLDSHOP × BUNDLE PRODUCTS 📦",
-        description="Poniżej znajdziesz wszystkie dostępne paczki kont i usług w atrakcyjnych cenach!",
-        color=discord.Color.from_rgb(0, 162, 232)
-    )
-    embed.add_field(
-        name="Dostępne Bundles:",
-        value="• ⭐ × **FiveM Ready Bundle**\n• 🎮 × **CS2 Prime + Steam Bundle**\n• 📦 × **Ultimate Gamer Bundle**",
-        inline=False
-    )
-    embed.set_footer(text="COLDSHOP • Wybierz produkt z menu poniżej")
-    view = discord.ui.View(timeout=None)
-    view.add_item(BundleOnlySelect())
-    
-    await interaction.channel.send(embed=embed, view=view)
-    await interaction.response.send_message("✅ Panel Bundle wysłany!", ephemeral=
+class VpnOnlySelect(discord.ui
