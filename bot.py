@@ -9,6 +9,9 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
+# 👇 TUTAJ WPISZ ID SWOJEGO SERWERA DISCORD ZAMIAST ZERA (np. 123456789012345678) 👇
+MY_GUILD_ID = discord.Object(id=0)
+
 DROP_CHANNEL_ID = 1561163117726011533
 
 BANNER_URL = "http://googleusercontent.com/generated_animated_image/15959043500870823950"
@@ -23,8 +26,10 @@ class ColdBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        await self.tree.sync()
-        print("Komendy Slash zostały zsynchronizowane!")
+        # Natychmiastowa synchronizacja komend pod Twój konkretny serwer
+        self.tree.copy_global_to(guild=MY_GUILD_ID)
+        await self.tree.sync(guild=MY_GUILD_ID)
+        print("Komendy Slash zostały natychmiast zsynchronizowane z serwerem!")
 
 bot = ColdBot()
 
@@ -235,127 +240,4 @@ async def setup_vpn(interaction: discord.Interaction):
     )
     embed.add_field(name="Dostępne:", value="• 🛡️ × **IP Vanish**\n• 🌐 × **NexHub**", inline=False)
     embed.set_image(url=BANNER_URL)
-    embed.set_footer(text="COLDSHOP • VPN")
-    
-    view = discord.ui.View(timeout=None)
-    view.add_item(VpnOnlySelect())
-    
-    await interaction.channel.send(embed=embed, view=view)
-    await interaction.followup.send("✅ Panel VPN wysłany!", ephemeral=True)
-
-@bot.tree.command(name="setup_shop", description="Ustawia sklep (Citizen i Soundpacks).")
-@app_commands.checks.has_permissions(administrator=True)
-async def setup_shop(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    embed = discord.Embed(
-        title="🛒 COLDSHOP × ADDONS & MODS",
-        description="Wybierz interesującą Cię kategorię dodatków do gry:",
-        color=discord.Color.from_rgb(0, 162, 232)
-    )
-    embed.add_field(name="Oferta:", value="• 🌅 × **Citizen** (Customowe postacie)\n• 🔊 × **Soundpacks** (Paczki dźwięków)", inline=False)
-    embed.set_image(url=BANNER_URL)
-    embed.set_footer(text="COLDSHOP • Sklep")
-    
-    view = discord.ui.View(timeout=None)
-    view.add_item(ShopOnlySelect())
-    
-    await interaction.channel.send(embed=embed, view=view)
-    await interaction.followup.send("✅ Panel Shop wysłany!", ephemeral=True)
-
-@bot.tree.command(name="setup_custombot", description="Ustawia panel zamówień na niestandardowe boty.")
-@app_commands.checks.has_permissions(administrator=True)
-async def setup_custombot(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    embed = discord.Embed(
-        title="⚙️ CUSTOM DISCORD BOTS / BOTY NA ZAMÓWIENIE",
-        description=(
-            "**ENG**\n"
-            "Custom Discord Bots — Python/JS\n"
-            "Moderation • tickets • API integrations • any commands you want\n"
-            "Clean code, fast delivery, optional 24/7 hosting.\n"
-            "Price depends on complexity — ⁠・tickets ---> SHOP .\n\n"
-            "--------------------------------------------------\n\n"
-            "**PL**\n"
-            "Customowe Boty Discord — Python/JS\n"
-            "Moderacja • tickety • integracje API • dowolne komendy\n"
-            "Czysty kod, szybka realizacja, również opcjonalny hosting 24/7.\n"
-            "Cena zależy od trudności — otwórz ticket!"
-        ),
-        color=discord.Color.from_rgb(0, 162, 232)
-    )
-    embed.set_image(url=BANNER_URL)
-    embed.set_footer(text="COLDSHOP • Custom Bots")
-    
-    view = PurchaseView(product_name="Custom Bot Discord", price_text="Wycena indywidualna")
-    await interaction.channel.send(embed=embed, view=view)
-    await interaction.followup.send("✅ Panel Custom Bot wysłany!", ephemeral=True)
-
-@bot.tree.command(name="say", description="Wysyła ramkę ogłoszeniową.")
-@app_commands.checks.has_permissions(administrator=True)
-async def say(interaction: discord.Interaction, message: str, title: str = None, footer: str = "Bot • Ad made by px7.nj"):
-    await interaction.response.defer(ephemeral=True)
-    embed = discord.Embed(title=title if title else "", description=message, color=discord.Color.from_rgb(47, 49, 54))
-    if footer:
-        embed.set_footer(text=footer)
-    await interaction.channel.send(embed=embed)
-    await interaction.followup.send("✅ Wiadomość wysłana!", ephemeral=True)
-
-@bot.tree.command(name="bandc", description="Banuje użytkownika.")
-@app_commands.checks.has_permissions(ban_members=True)
-async def bandc(interaction: discord.Interaction, user: discord.User, reason: str = "Brak powodu"):
-    await interaction.response.defer()
-    try:
-        await interaction.guild.ban(user, reason=reason)
-    except Exception as e:
-        await interaction.followup.send(f"❌ Błąd: {e}", ephemeral=True)
-        return
-
-    embed = discord.Embed(title="🔨 User has been banned for life", color=discord.Color.red())
-    embed.add_field(name="👤 User", value=user.mention, inline=True)
-    embed.add_field(name="🆔 ID", value=f"`{user.id}`", inline=True)
-    embed.add_field(name="🛡️ Administrator", value=interaction.user.mention, inline=False)
-    embed.add_field(name="📝 Reason", value=f"```\n{reason}\n```", inline=False)
-    embed.set_image(url=BANNER_URL)
-    embed.set_footer(text=f"COLDSHOP Security • {discord.utils.utcnow().strftime('%H:%M')}")
-    await interaction.followup.send(embed=embed)
-
-@bot.tree.command(name="unbandc", description="Odbanowuje użytkownika.")
-@app_commands.checks.has_permissions(ban_members=True)
-async def unbandc(interaction: discord.Interaction, user_id: str, reason: str = "Odbanowanie"):
-    await interaction.response.defer()
-    try:
-        user = await bot.fetch_user(int(user_id))
-        await interaction.guild.unban(user, reason=reason)
-    except Exception as e:
-        await interaction.followup.send(f"❌ Błąd: {e}", ephemeral=True)
-        return
-
-    embed = discord.Embed(title="🔓 User has been unbanned", color=discord.Color.green())
-    embed.add_field(name="👤 User", value=f"{user.name} ({user.mention})", inline=True)
-    embed.add_field(name="🆔 ID", value=f"`{user.id}`", inline=True)
-    embed.set_footer(text=f"COLDSHOP Security • {discord.utils.utcnow().strftime('%H:%M')}")
-    await interaction.followup.send(embed=embed)
-
-@bot.tree.command(name="drop", description="Minigra ze zniżką 20%!")
-async def drop(interaction: discord.Interaction):
-    if interaction.channel_id != DROP_CHANNEL_ID:
-        await interaction.response.send_message(f"❌ Tylko na kanale <#{DROP_CHANNEL_ID}>!", ephemeral=True)
-        return
-
-    win = random.randint(1, 100) <= 5
-    if win:
-        embed = discord.Embed(
-            title="🎉 GRATULACJE! WYGRAŁEŚ ZNIŻKĘ!",
-            description=f"🔥 {interaction.user.mention} trafił **5% szans** i wylosował **ZNIŻKĘ -20%** w **COLDSHOP**!",
-            color=discord.Color.gold()
-        )
-        await interaction.response.send_message(embed=embed)
-    else:
-        embed = discord.Embed(
-            title="❄️ COLDSHOP DROP — BRAK TRAFIENIA",
-            description=f"Niestety {interaction.user.mention}, spróbuj ponownie później.",
-            color=discord.Color.dark_gray()
-        )
-        await interaction.response.send_message(embed=embed)
-
-bot.run(TOKEN)
+    embed.set_
