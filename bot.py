@@ -10,9 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-# ID Twojego serwera Discord do natychmiastowej synchronizacji
+# ID Twojego serwera Discord
 MY_GUILD_ID = discord.Object(id=1561157589511839898)
-
 DROP_CHANNEL_ID = 1561163117726011533
 
 BANNER_URL = "http://googleusercontent.com/generated_animated_image/15959043500870823950"
@@ -29,7 +28,7 @@ class ColdBot(commands.Bot):
     async def setup_hook(self):
         self.tree.copy_global_to(guild=MY_GUILD_ID)
         await self.tree.sync(guild=MY_GUILD_ID)
-        print("✅ Komendy Slash zostały natychmiast zsynchronizowane z Twoim serwerem!")
+        print("✅ Komendy Slash zostały zsynchronizowane!")
 
 bot = ColdBot()
 
@@ -82,7 +81,8 @@ class PurchaseSelect(discord.ui.Select):
             description=f"Witaj {user.mention}!\nOtworzyłeś ticket zakupowy dla **{self.product_name}**.\nZaraz dołączy do Ciebie ktoś z administracji.\n\nAby zamknąć zgłoszenie, kliknij poniższy przycisk:",
             color=discord.Color.blue()
         )
-        ticket_embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
+        if guild.icon:
+            ticket_embed.set_thumbnail(url=guild.icon.url)
         
         await ticket_channel.send(content=f"{user.mention}", embed=ticket_embed, view=CloseTicketView())
         await interaction.followup.send(f"✅ Stworzono Twój ticket: {ticket_channel.mention}", ephemeral=True)
@@ -134,7 +134,7 @@ class BundleOnlySelect(discord.ui.Select):
         options = [
             discord.SelectOption(label="Discord Account", description="Zobacz ofertę kont Discord.", emoji="💬"),
             discord.SelectOption(label="Steam Account", description="Zobacz ofertę kont Steam.", emoji="🎮"),
-            discord.SelectOption(label="Rockstar Account", description="Zobacz ofertę kont Rockstar.", emoji="⭐"),
+            discord.SelectOption(label="Rockstar Account", description="Zobacz ofertę kont Rockstar.", emoji="⭐")
         ]
         super().__init__(placeholder="❌ × Wybierz konto", min_values=1, max_values=1, options=options)
 
@@ -142,8 +142,8 @@ class BundleOnlySelect(discord.ui.Select):
         selected = self.values[0]
         embed = discord.Embed(
             title=f"{selected} 📦",
-            description=f"» **Cena:** Do uzgodnienia w zgłoszeniu\n» **Zawartość:** Pełen dostęp, natychmiastowa realizacja.",
-            color=discord.Color.from_rgb(0, 162, 232)
+            description="» **Cena:** Do uzgodnienia w zgłoszeniu\n» **Zawartość:** Pełen dostęp, natychmiastowa realizacja.",
+            color=discord.Color.blue()
         )
         embed.set_image(url=BUNDLE_IMAGE_URL)
         view = PurchaseView(product_name=selected, price_text="Kup teraz")
@@ -153,7 +153,7 @@ class VpnOnlySelect(discord.ui.Select):
     def __init__(self):
         options = [
             discord.SelectOption(label="IP Vanish", description="Cena: €1 / 4.5zł (Year)", emoji="🛡️"),
-            discord.SelectOption(label="NexHub", description="NexHub VPN", emoji="🌐"),
+            discord.SelectOption(label="NexHub", description="NexHub VPN", emoji="🌐")
         ]
         super().__init__(placeholder="❌ × Wybierz VPN", min_values=1, max_values=1, options=options)
 
@@ -162,4 +162,19 @@ class VpnOnlySelect(discord.ui.Select):
         embed = discord.Embed(
             title=f"{selected} VPN 🛡️",
             description="» **Cena:** Atrakcyjna oferta\n» **Dostęp:** Pełny dostęp roczny.",
-            color=discord.Color.from_rgb(0,
+            color=discord.Color.blue()
+        )
+        embed.set_image(url=BANNER_URL)
+        view = PurchaseView(product_name=selected, price_text="Kup teraz")
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+class ShopOnlySelect(discord.ui.Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(label="Citizen", description="Customowe postacie i modele FiveM", emoji="🌅"),
+            discord.SelectOption(label="Soundpacks", description="Paczki dźwięków i audio", emoji="🔊")
+        ]
+        super().__init__(placeholder="❌ × Wybierz dodatek", min_values=1, max_values=1, options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        selected = self.values
