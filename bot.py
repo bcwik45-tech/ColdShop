@@ -1,6 +1,7 @@
 import os
 import random
 import datetime
+import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -9,8 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-# 👇 TUTAJ WPISZ ID SWOJEGO SERWERA DISCORD ZAMIAST ZERA (np. 123456789012345678) 👇
-MY_GUILD_ID = discord.Object(id=0)
+# 👇 Twoje ID serwera Discord
+MY_GUILD_ID = discord.Object(id=1561157589511839898)
 
 DROP_CHANNEL_ID = 1561163117726011533
 
@@ -26,12 +27,13 @@ class ColdBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        # Natychmiastowa synchronizacja komend pod Twój konkretny serwer
         self.tree.copy_global_to(guild=MY_GUILD_ID)
         await self.tree.sync(guild=MY_GUILD_ID)
-        print("Komendy Slash zostały natychmiast zsynchronizowane z serwerem!")
+        print("✅ Komendy Slash zostały natychmiast zsynchronizowane z Twoim serwerem!")
 
 bot = ColdBot()
+
+# --- 1. TICKET SYSTEM ---
 
 class CloseTicketView(discord.ui.View):
     def __init__(self):
@@ -40,7 +42,7 @@ class CloseTicketView(discord.ui.View):
     @discord.ui.button(label="🔒 Zamknij Ticket", style=discord.ButtonStyle.danger, custom_id="close_ticket_btn")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("🔒 Ticket zostanie usunięty za 5 sekund...")
-        await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
+        await asyncio.sleep(5)
         await interaction.channel.delete()
 
 class PurchaseSelect(discord.ui.Select):
@@ -90,6 +92,8 @@ class PurchaseView(discord.ui.View):
         super().__init__(timeout=None)
         self.add_item(PurchaseSelect(product_name, price_text))
 
+# --- 2. LEGIT CHECK SYSTEM ---
+
 class LegitCheckView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -122,6 +126,8 @@ class LegitCheckView(discord.ui.View):
         
         await interaction.response.edit_message(view=self)
         await interaction.followup.send("Dziękujemy za oddanie głosu.", ephemeral=True)
+
+# --- 3. SELEKTORY PRODUKTÓW ---
 
 class BundleOnlySelect(discord.ui.Select):
     def __init__(self):
@@ -179,6 +185,8 @@ class ShopOnlySelect(discord.ui.Select):
         )
         view = PurchaseView(product_name=selected, price_text="Sprawdź")
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+# --- 4. KOMENDY SETUPU & FEEDBACK ---
 
 @bot.tree.command(name="feedback", description="Wysyła prośbę o wystawienie opinii po zakupie.")
 @app_commands.checks.has_permissions(administrator=True)
@@ -240,4 +248,19 @@ async def setup_vpn(interaction: discord.Interaction):
     )
     embed.add_field(name="Dostępne:", value="• 🛡️ × **IP Vanish**\n• 🌐 × **NexHub**", inline=False)
     embed.set_image(url=BANNER_URL)
-    embed.set_
+    embed.set_footer(text="COLDSHOP • VPN")
+    
+    view = discord.ui.View(timeout=None)
+    view.add_item(VpnOnlySelect())
+    
+    await interaction.channel.send(embed=embed, view=view)
+    await interaction.followup.send("✅ Panel VPN wysłany!", ephemeral=True)
+
+@bot.tree.command(name="setup_shop", description="Ustawia sklep (Citizen i Soundpacks).")
+@app_commands.checks.has_permissions(administrator=True)
+async def setup_shop(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=True)
+    embed = discord.Embed(
+        title="🛒 COLDSHOP × ADDONS & MODS",
+        description="Wybierz interesującą Cię kategorię dodatków do gry:",
+        color=discord.Color.from_rgb(0, 162, 232
