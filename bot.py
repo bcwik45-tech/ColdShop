@@ -53,6 +53,26 @@ class CloseTicketView(discord.ui.View):
         await asyncio.sleep(5)
         await interaction.channel.delete()
 
+class LegitCheckView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.yes_count = 0
+
+    @discord.ui.button(label="0", emoji="✅", style=discord.ButtonStyle.success, custom_id="legit_yes_btn")
+    async def legit_yes(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.yes_count += 1
+        button.label = str(self.yes_count)
+        await interaction.response.edit_message(view=self)
+        await interaction.followup.send("✅ Dziękujemy za głos!", ephemeral=True)
+
+@bot.tree.command(name="setup_legitchecks", description="Panel legit check.")
+@app_commands.checks.has_permissions(administrator=True)
+async def setup_legitchecks(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=True)
+    embed = discord.Embed(title="⭐ COLDSHOP × LEGIT CHECK", description="Kliknij ✅, aby wystawić opinię.", color=discord.Color.blue())
+    await interaction.channel.send(embed=embed, view=LegitCheckView())
+    await interaction.followup.send("✅ Stworzono panel!", ephemeral=True)
+
 @bot.tree.command(name="feedback", description="Wysyła opinię.")
 @app_commands.checks.has_permissions(administrator=True)
 async def feedback(interaction: discord.Interaction):
