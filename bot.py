@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-# 👇 Twoje ID serwera Discord
+# ID Twojego serwera Discord do natychmiastowej synchronizacji
 MY_GUILD_ID = discord.Object(id=1561157589511839898)
 
 DROP_CHANNEL_ID = 1561163117726011533
@@ -162,105 +162,4 @@ class VpnOnlySelect(discord.ui.Select):
         embed = discord.Embed(
             title=f"{selected} VPN 🛡️",
             description="» **Cena:** Atrakcyjna oferta\n» **Dostęp:** Pełny dostęp roczny.",
-            color=discord.Color.from_rgb(0, 162, 232)
-        )
-        embed.set_image(url=BANNER_URL)
-        view = PurchaseView(product_name=selected, price_text="Kup teraz")
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
-class ShopOnlySelect(discord.ui.Select):
-    def __init__(self):
-        options = [
-            discord.SelectOption(label="Citizen", description="Customowe postacie i modele FiveM", emoji="🌅"),
-            discord.SelectOption(label="Soundpacks", description="Paczki dźwięków i audio", emoji="🔊")
-        ]
-        super().__init__(placeholder="❌ × Wybierz dodatek", min_values=1, max_values=1, options=options)
-
-    async def callback(self, interaction: discord.Interaction):
-        selected = self.values[0]
-        embed = discord.Embed(
-            title=f"{selected} 🎮",
-            description=f"» **Produkt:** {selected}\n» Otwórz ticket, aby dokonać zakupu.",
-            color=discord.Color.from_rgb(0, 162, 232)
-        )
-        view = PurchaseView(product_name=selected, price_text="Sprawdź")
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
-# --- 4. KOMENDY SETUPU & FEEDBACK ---
-
-@bot.tree.command(name="feedback", description="Wysyła prośbę o wystawienie opinii po zakupie.")
-@app_commands.checks.has_permissions(administrator=True)
-async def feedback(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    embed = discord.Embed(
-        title="⭐ COLDSHOP × FEEDBACK & OPINIE",
-        description="Dziękujemy za zakupy w naszym sklepie!\nZostaw ocenę na naszym kanale **#・legit-check** / **#reviews**.",
-        color=discord.Color.from_rgb(0, 162, 232)
-    )
-    embed.set_image(url=BANNER_URL)
-    embed.set_footer(text="COLDSHOP • Dziękujemy za zaufanie!")
-    await interaction.channel.send(embed=embed)
-    await interaction.followup.send("✅ Wiadomość feedback wysłana!", ephemeral=True)
-
-@bot.tree.command(name="setup_legitchecks", description="Ustawia panel do oceniania i liczenia Legit Checków.")
-@app_commands.checks.has_permissions(administrator=True)
-async def setup_legitchecks(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    embed = discord.Embed(
-        title="⭐ COLDSHOP × LEGIT CHECK PANEL",
-        description="Kliknij poniższy przycisk **✅**, aby potwierdzić udaną transakcję i naszą wiarygodność!",
-        color=discord.Color.from_rgb(0, 162, 232)
-    )
-    embed.set_image(url=BANNER_URL)
-    embed.set_footer(text="COLDSHOP • Rejestr Ocen")
-    
-    view = LegitCheckView()
-    await interaction.channel.send(embed=embed, view=view)
-    await interaction.followup.send("✅ Panel Legit Check stworzony!", ephemeral=True)
-
-@bot.tree.command(name="setup_bundle", description="Ustawia panel z paczkami i kontami.")
-@app_commands.checks.has_permissions(administrator=True)
-async def setup_bundle(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    embed = discord.Embed(
-        title="⭐ COLDSHOP × FIVEM & ACCOUNTS",
-        description="Accounts **available** from us:",
-        color=discord.Color.from_rgb(0, 162, 232)
-    )
-    embed.add_field(name="Dostępne:", value="• 💬 × **Discord Account**\n• 🎮 × **Steam Account**\n• ⭐ × **Rockstar Account**", inline=False)
-    embed.set_image(url=BUNDLE_IMAGE_URL)
-    embed.set_footer(text="COLDSHOP • FiveM & Bundles")
-    
-    view = discord.ui.View(timeout=None)
-    view.add_item(BundleOnlySelect())
-    
-    await interaction.channel.send(embed=embed, view=view)
-    await interaction.followup.send("✅ Panel Bundle wysłany!", ephemeral=True)
-
-@bot.tree.command(name="setup_vpn", description="Ustawia panel VPN.")
-@app_commands.checks.has_permissions(administrator=True)
-async def setup_vpn(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    embed = discord.Embed(
-        title="🛡️ COLDSHOP × VPN SERVICES",
-        description="Wybierz sprawdzony VPN z listy poniżej:",
-        color=discord.Color.from_rgb(0, 162, 232)
-    )
-    embed.add_field(name="Dostępne:", value="• 🛡️ × **IP Vanish**\n• 🌐 × **NexHub**", inline=False)
-    embed.set_image(url=BANNER_URL)
-    embed.set_footer(text="COLDSHOP • VPN")
-    
-    view = discord.ui.View(timeout=None)
-    view.add_item(VpnOnlySelect())
-    
-    await interaction.channel.send(embed=embed, view=view)
-    await interaction.followup.send("✅ Panel VPN wysłany!", ephemeral=True)
-
-@bot.tree.command(name="setup_shop", description="Ustawia sklep (Citizen i Soundpacks).")
-@app_commands.checks.has_permissions(administrator=True)
-async def setup_shop(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    embed = discord.Embed(
-        title="🛒 COLDSHOP × ADDONS & MODS",
-        description="Wybierz interesującą Cię kategorię dodatków do gry:",
-        color=discord.Color.from_rgb(0, 162, 232
+            color=discord.Color.from_rgb(0,
