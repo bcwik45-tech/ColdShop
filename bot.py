@@ -1,8 +1,6 @@
 import os
 import random
 import asyncio
-import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -10,14 +8,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
-
-class HealthHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"OK")
-
-threading.Thread(target=lambda: HTTPServer(("0.0.0.0", int(os.environ.get("PORT", 8080))), HealthHandler).serve_forever(), daemon=True).start()
 
 MY_GUILD = discord.Object(id=1561157589511839898)
 DROP_CH = 1561163117726011533
@@ -30,10 +20,11 @@ intents.members = True
 class Bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="!", intents=intents)
+
     async def setup_hook(self):
         self.tree.copy_global_to(guild=MY_GUILD)
         await self.tree.sync(guild=MY_GUILD)
-        print("✅ Zsynchronizowano!")
+        print("✅ Bot gotowy i zsynchronizowany!")
 
 bot = Bot()
 
@@ -128,9 +119,4 @@ async def dp(inter: discord.Interaction):
     else:
         await inter.response.send_message(f"❄️ Niestety {inter.user.mention}, spróbuj ponownie.")
 
-async def main():
-    async with bot:
-        await bot.start(TOKEN)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+bot.run(TOKEN)
