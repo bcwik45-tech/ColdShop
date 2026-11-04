@@ -16,6 +16,7 @@ AUTO_ROLE_ID = 1566920586968563773       # Ranga nadawana po wejściu na serwer
 
 TICKET_COMMAND_CHANNEL_ID = 1566913978515464246  # Kanał wpisania /ticket
 TICKET_PANEL_CHANNEL_ID = 1567547750155952198    # Kanał gdzie wysyła się panel
+TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Nowy kanał do wzmianki w ticketach
 
 # Kategorie ticketów
 CATEGORY_SUPPORT = 1567545250656948314
@@ -151,7 +152,7 @@ async def on_member_join(member: discord.Member):
             color=discord.Color.dark_theme()
         )
         embed.set_image(url=BANNER_URL)
-        embed.set_footer(text="Zone")
+        embed.set_footer(text="Zayro")
         await channel.send(embed=embed)
 
 # BOOSTY
@@ -176,7 +177,7 @@ async def on_member_update(before: discord.Member, after: discord.Member):
             )
             embed.set_thumbnail(url=after.display_avatar.url)
             embed.set_image(url=BANNER_URL)
-            embed.set_footer(text="Zone")
+            embed.set_footer(text="Zayro")
             await channel.send(embed=embed)
 
 # --- KOMENDY SLASH ---
@@ -196,12 +197,12 @@ async def ticket_cmd(interaction: discord.Interaction):
             "**Ticket Owner**\n*Open if you have a demand to the owners*\n\n"
             "**Ticket Support**\n*Open if you need any help*\n\n"
             "**Ticket Partner**\n*Open if you want to collaborate with us.*\n\n"
-            "┃ **For any issues, text on** <#1566913978515464246>"
+            f"┃ **For any issues, text on** <#{TICKET_ISSUES_CHANNEL_ID}>"
         ),
         color=discord.Color.dark_grey()
     )
     embed.set_image(url=BANNER_URL)
-    embed.set_footer(text="Zone")
+    embed.set_footer(text="Zayro")
 
     await target_channel.send(embed=embed, view=TicketPanelView())
     await interaction.response.send_message("Panel ticketów został wysłany!", ephemeral=True)
