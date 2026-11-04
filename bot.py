@@ -15,7 +15,7 @@ AUTO_ROLE_ID = 1566920586968563773
 
 TICKET_COMMAND_CHANNEL_ID = 1566913978515464246
 TICKET_PANEL_CHANNEL_ID = 1567547750155952198
-TICKET_TXT_CHANNEL_ID = 1566913978515464246    # (# txt)
+TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Dokładnie ten kanał z Twojego screena
 
 CATEGORY_OWNER = 1567544808870780928
 CATEGORY_SUPPORT = 1567545250656948314
@@ -34,7 +34,7 @@ class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v5")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v6")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -47,7 +47,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v5")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v6")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -183,7 +183,7 @@ async def ticket_cmd(interaction: discord.Interaction):
             "**Ticket Owner**\n*Open if you have a demand to the owners*\n\n"
             "**Ticket Support**\n*Open if you need any help*\n\n"
             "**Ticket Partner**\n*Open if you want to collaborate with us.*\n\n"
-            f"┃ **For any issues, text on** <#{TICKET_TXT_CHANNEL_ID}>"
+            f"┃ **For any issues, text on** <#{TICKET_ISSUES_CHANNEL_ID}>"
         ),
         color=discord.Color.dark_grey()
     )
