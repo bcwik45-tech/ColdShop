@@ -34,7 +34,7 @@ class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v4")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v5")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -47,7 +47,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v4")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v5")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
