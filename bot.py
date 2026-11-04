@@ -16,12 +16,12 @@ AUTO_ROLE_ID = 1566920586968563773       # Ranga nadawana po wejściu na serwer
 
 TICKET_COMMAND_CHANNEL_ID = 1566913978515464246  # Kanał wpisania /ticket
 TICKET_PANEL_CHANNEL_ID = 1567547750155952198    # Kanał gdzie wysyła się panel
-TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Nowy kanał do wzmianki w ticketach
+TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Kanał do wzmianki w ticketach
 
-# Kategorie ticketów
+# Kategorie ticketów (uzupełnij ID kategorii dla ownera, jeśli masz inną niż support)
 CATEGORY_SUPPORT = 1567545250656948314
 CATEGORY_PARTNER = 1567545665167560775
-CATEGORY_OWNER = 1567545250656948314  
+CATEGORY_OWNER = 1567545250656948314  # <-- Tutaj podmień ID kategorii dla Ownera, jeśli jest inna!
 
 # Emotki / Naklejki
 E_WELCOME = ["<:w1:1567540850873999371>", "<:w2:1567541120861470740>", "<:w3:1567541279565291580>", "<:w4:1567541402370318427>", "<:w5:1567541561330376704>"]
@@ -29,16 +29,16 @@ E_BOOST = ["<:b1:1567546207876939876>", "<:b2:1567546347429830836>", "<:b3:15675
 
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True  # WYMAGANE do powitań, boostów i auto-rangi!
+intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# --- VIEW DLA TICKETÓW ---
+# --- VIEW DLA TICKETÓW (Trwałe przy starcie bota) ---
 class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="persistent_close_ticket_btn")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -51,7 +51,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="persistent_ticket_select_menu")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -116,15 +116,17 @@ class TicketPanelView(discord.ui.View):
 
 @bot.event
 async def on_ready():
-    bot.add_view(TicketPanelView())
-    bot.add_view(CloseTicketView())
+    # Rejestrujemy widoki persystentne tylko raz, żeby unikać duplikacji
+    if not any(isinstance(v, TicketPanelView) for v in bot.persistent_views):
+        bot.add_view(TicketPanelView())
+    if not any(isinstance(v, CloseTicketView) for v in bot.persistent_views):
+        bot.add_view(CloseTicketView())
+        
     await bot.tree.sync()
     print(f"Zalogowano jako: {bot.user}")
 
-# EVENT: DOŁĄCZENIE UŻYTKOWNIKA (Auto-rola + Powitanie)
 @bot.event
 async def on_member_join(member: discord.Member):
-    # 1. Automatyczne nadawanie rangi
     auto_role = member.guild.get_role(AUTO_ROLE_ID)
     if auto_role:
         try:
@@ -132,7 +134,6 @@ async def on_member_join(member: discord.Member):
         except Exception as e:
             print(f"Nie udało się nadać rangi użytkownikowi {member.name}: {e}")
 
-    # 2. Wiadomość powitalna
     channel = member.guild.get_channel(WELCOME_CHANNEL_ID)
     if channel:
         emojis_str = " ".join(E_WELCOME)
@@ -155,7 +156,6 @@ async def on_member_join(member: discord.Member):
         embed.set_footer(text="Zayro")
         await channel.send(embed=embed)
 
-# BOOSTY
 @bot.event
 async def on_member_update(before: discord.Member, after: discord.Member):
     if (not before.premium_since and after.premium_since):
@@ -236,7 +236,6 @@ async def unbandc(interaction: discord.Interaction, user_id: str, reason: str = 
 
     await interaction.response.send_message(embed=embed)
 
-# Uruchomienie bota
 TOKEN = os.getenv("DISCORD_TOKEN")
 if __name__ == "__main__":
     bot.run(TOKEN)
