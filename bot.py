@@ -1,5 +1,6 @@
 import os
 import datetime
+import threading
 from flask import Flask
 import discord
 from discord import app_commands
@@ -8,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- MINI SERWER HTTP DLA RENDERA (Musi nasłuchiwać na 0.0.0.0 i porcie z Rendera) ---
+# --- MINI SERWER HTTP DLA RENDERA ---
 app = Flask('')
 
 @app.route('/')
@@ -34,6 +35,7 @@ CATEGORY_OWNER = 1567544808870780928
 CATEGORY_SUPPORT = 1567545250656948314
 CATEGORY_PARTNER = 1567545665167560775
 
+# Dokładna kolejność emoji powitalnych w linii tekstu
 E_WELCOME = ["<:w1:1567540850873999371>", "<:w2:1567541120861470740>", "<:w3:1567541279565291580>", "<:w4:1567541402370318427>", "<:w5:1567541561330376704>"]
 E_BOOST = ["<:b1:1567546207876939876>", "<:b2:1567546347429830836>", "<:b3:1567546492657602671>", "<:b4:1567546612773949510>"]
 
@@ -47,7 +49,7 @@ class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v8")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v9")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -60,7 +62,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v8")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v9")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -141,15 +143,14 @@ async def on_member_join(member: discord.Member):
         embed = discord.Embed(
             title="New user joined us! 🙂",
             description=(
-                f"🎉 **Hi {member.mention}! We're glad to have you here!**\n"
+                f"{emojis_str} **Hi {member.mention}! We're glad to have you here!**\n"
                 f"> Go check out our fivem stuff!\n"
                 f"> Don't forget to read the rules!\n"
                 f"> **You're our {member.guild.member_count} member!**\n\n"
                 f"📢 **User Information**\n"
                 f"▫️ **Discord account created:** `{member.created_at.strftime('%Y-%m-%d %H:%M:%S')}`\n"
                 f"▫️ **Username:** `{member.name}`\n"
-                f"▫️ **Joined at:** `{member.joined_at.strftime('%Y-%m-%d %H:%M:%S')}`\n"
-                f"\n{emojis_str}"
+                f"▫️ **Joined at:** `{member.joined_at.strftime('%Y-%m-%d %H:%M:%S')}`"
             ),
             color=discord.Color.dark_theme()
         )
@@ -232,8 +233,6 @@ async def unbandc(interaction: discord.Interaction, user_id: str, reason: str = 
     await interaction.response.send_message(embed=embed)
 
 if __name__ == "__main__":
-    import threading
-    # Uruchomienie Flaska w osobnym wątku, żeby nie blokował bota Discorda
     flask_thread = threading.Thread(target=run)
     flask_thread.daemon = True
     flask_thread.start()
