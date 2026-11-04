@@ -1,5 +1,6 @@
 import os
 import datetime
+from flask import Flask
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -7,6 +8,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# --- MINI SERWER HTTP DLA RENDERA (Musi nasłuchiwać na 0.0.0.0 i porcie z Rendera) ---
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
+
+# --- KONFIGURACJA BOTA ---
 BANNER_URL = "https://cdn.discordapp.com/attachments/1566913978515464246/1567544191456776314/banner_zayro.png?ex=6aec90ca&is=6aeb3f4a&hm=4c752e67ec46147355292cf08789814fab80d5e9745a772253fc392af52ef55d&"
 
 WELCOME_CHANNEL_ID = 1566913703767707670
@@ -15,7 +28,7 @@ AUTO_ROLE_ID = 1566920586968563773
 
 TICKET_COMMAND_CHANNEL_ID = 1566913978515464246
 TICKET_PANEL_CHANNEL_ID = 1567547750155952198
-TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Dokładnie ten kanał z Twojego screena
+TICKET_ISSUES_CHANNEL_ID = 1566918887235260516
 
 CATEGORY_OWNER = 1567544808870780928
 CATEGORY_SUPPORT = 1567545250656948314
@@ -34,7 +47,7 @@ class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v6")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v8")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -47,7 +60,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v6")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v8")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -218,6 +231,12 @@ async def unbandc(interaction: discord.Interaction, user_id: str, reason: str = 
     embed.set_image(url=BANNER_URL)
     await interaction.response.send_message(embed=embed)
 
-TOKEN = os.getenv("DISCORD_TOKEN")
 if __name__ == "__main__":
+    import threading
+    # Uruchomienie Flaska w osobnym wątku, żeby nie blokował bota Discorda
+    flask_thread = threading.Thread(target=run)
+    flask_thread.daemon = True
+    flask_thread.start()
+
+    TOKEN = os.getenv("DISCORD_TOKEN")
     bot.run(TOKEN)
