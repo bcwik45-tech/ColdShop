@@ -16,12 +16,12 @@ AUTO_ROLE_ID = 1566920586968563773       # Ranga nadawana po wejściu na serwer
 
 TICKET_COMMAND_CHANNEL_ID = 1566913978515464246  # Kanał wpisania /ticket
 TICKET_PANEL_CHANNEL_ID = 1567547750155952198    # Kanał gdzie wysyła się panel
-TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Kanał do wzmianki w ticketach (#moderator-only)
+TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Kanał #moderator-only do wzmianki w embedzie
 
 # Kategorie ticketów
-CATEGORY_SUPPORT = 1567545250656948314
-CATEGORY_PARTNER = 1567545665167560775
-CATEGORY_OWNER = 1567545250656948314  # <-- Wpisz tu ID kategorii Ownera, jeśli ma inną niż support!
+CATEGORY_OWNER = 1567544808870780928    # <-- ID KATEGORII DLA OWNER (Zmieniłem na ID ze zgłoszenia)
+CATEGORY_SUPPORT = 1567545250656948314  # Kategoria Support
+CATEGORY_PARTNER = 1567545665167560775  # Kategoria Partner
 
 # Emotki / Naklejki
 E_WELCOME = ["<:w1:1567540850873999371>", "<:w2:1567541120861470740>", "<:w3:1567541279565291580>", "<:w4:1567541402370318427>", "<:w5:1567541561330376704>"]
@@ -87,6 +87,8 @@ class TicketSelect(discord.ui.Select):
                 overwrites[role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
 
         category = guild.get_channel(category_id)
+        
+        # Tworzenie kanału w wybranej kategorii
         ticket_channel = await guild.create_text_channel(
             name=f"{val}-{user.name}",
             category=category,
@@ -116,12 +118,10 @@ class TicketPanelView(discord.ui.View):
 
 @bot.event
 async def on_ready():
-    # Czyszczenie i jednorazowe dodanie widoków, żeby uniknąć duplikacji
-    bot.persistent_views_added = getattr(bot, "persistent_views_added", False)
-    if not bot.persistent_views_added:
+    if not getattr(bot, "views_loaded", False):
         bot.add_view(TicketPanelView())
         bot.add_view(CloseTicketView())
-        bot.persistent_views_added = True
+        bot.views_loaded = True
 
     await bot.tree.sync()
     print(f"Zalogowano jako: {bot.user}")
@@ -133,7 +133,7 @@ async def on_member_join(member: discord.Member):
         try:
             await member.add_roles(auto_role, reason="Automatyczna ranga po wejściu na serwer.")
         except Exception as e:
-            print(f"Nie udało się nadać rangi użytkownikowi {member.name}: {e}")
+            print(f"Błąd nadawania auto-rangi: {e}")
 
     channel = member.guild.get_channel(WELCOME_CHANNEL_ID)
     if channel:
@@ -205,8 +205,10 @@ async def ticket_cmd(interaction: discord.Interaction):
     embed.set_image(url=BANNER_URL)
     embed.set_footer(text="Zayro")
 
-    await target_channel.send(embed=embed, view=TicketPanelView())
+    # Powiadomienie tylko dla osoby wpisującej komendę
     await interaction.response.send_message("Panel ticketów został wysłany!", ephemeral=True)
+    # Wysłanie JEDNEGO panelu na docelowy kanał
+    await target_channel.send(embed=embed, view=TicketPanelView())
 
 @bot.tree.command(name="bandc", description="Banuje użytkownika i wysyła log z bannerem.")
 @app_commands.checks.has_permissions(ban_members=True)
