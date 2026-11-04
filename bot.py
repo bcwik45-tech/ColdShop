@@ -16,12 +16,12 @@ AUTO_ROLE_ID = 1566920586968563773       # Ranga nadawana po wejściu na serwer
 
 TICKET_COMMAND_CHANNEL_ID = 1566913978515464246  # Kanał wpisania /ticket
 TICKET_PANEL_CHANNEL_ID = 1567547750155952198    # Kanał gdzie wysyła się panel
-TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Kanał do wzmianki w ticketach
+TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Kanał do wzmianki w ticketach (#moderator-only)
 
-# Kategorie ticketów (uzupełnij ID kategorii dla ownera, jeśli masz inną niż support)
+# Kategorie ticketów
 CATEGORY_SUPPORT = 1567545250656948314
 CATEGORY_PARTNER = 1567545665167560775
-CATEGORY_OWNER = 1567545250656948314  # <-- Tutaj podmień ID kategorii dla Ownera, jeśli jest inna!
+CATEGORY_OWNER = 1567545250656948314  # <-- Wpisz tu ID kategorii Ownera, jeśli ma inną niż support!
 
 # Emotki / Naklejki
 E_WELCOME = ["<:w1:1567540850873999371>", "<:w2:1567541120861470740>", "<:w3:1567541279565291580>", "<:w4:1567541402370318427>", "<:w5:1567541561330376704>"]
@@ -33,7 +33,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# --- VIEW DLA TICKETÓW (Trwałe przy starcie bota) ---
+# --- VIEW DLA TICKETÓW ---
 class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -116,12 +116,13 @@ class TicketPanelView(discord.ui.View):
 
 @bot.event
 async def on_ready():
-    # Rejestrujemy widoki persystentne tylko raz, żeby unikać duplikacji
-    if not any(isinstance(v, TicketPanelView) for v in bot.persistent_views):
+    # Czyszczenie i jednorazowe dodanie widoków, żeby uniknąć duplikacji
+    bot.persistent_views_added = getattr(bot, "persistent_views_added", False)
+    if not bot.persistent_views_added:
         bot.add_view(TicketPanelView())
-    if not any(isinstance(v, CloseTicketView) for v in bot.persistent_views):
         bot.add_view(CloseTicketView())
-        
+        bot.persistent_views_added = True
+
     await bot.tree.sync()
     print(f"Zalogowano jako: {bot.user}")
 
