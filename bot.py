@@ -7,23 +7,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- KONFIGURACJA ID I BANNERA ---
 BANNER_URL = "https://cdn.discordapp.com/attachments/1566913978515464246/1567544191456776314/banner_zayro.png?ex=6aec90ca&is=6aeb3f4a&hm=4c752e67ec46147355292cf08789814fab80d5e9745a772253fc392af52ef55d&"
 
 WELCOME_CHANNEL_ID = 1566913703767707670
 BOOST_CHANNEL_ID = 1566923418228760606
-AUTO_ROLE_ID = 1566920586968563773       # Ranga nadawana po wejściu na serwer
+AUTO_ROLE_ID = 1566920586968563773
 
-TICKET_COMMAND_CHANNEL_ID = 1566913978515464246  # Kanał wpisania /ticket
-TICKET_PANEL_CHANNEL_ID = 1567547750155952198    # Kanał gdzie wysyła się panel
-TICKET_ISSUES_CHANNEL_ID = 1566918887235260516   # Kanał #moderator-only do wzmianki w embedzie
+TICKET_COMMAND_CHANNEL_ID = 1566913978515464246
+TICKET_PANEL_CHANNEL_ID = 1567547750155952198
+TICKET_TXT_CHANNEL_ID = 1566913978515464246    # (# txt)
 
-# Kategorie ticketów
-CATEGORY_OWNER = 1567544808870780928    # <-- ID KATEGORII DLA OWNER (Zmieniłem na ID ze zgłoszenia)
-CATEGORY_SUPPORT = 1567545250656948314  # Kategoria Support
-CATEGORY_PARTNER = 1567545665167560775  # Kategoria Partner
+CATEGORY_OWNER = 1567544808870780928
+CATEGORY_SUPPORT = 1567545250656948314
+CATEGORY_PARTNER = 1567545665167560775
 
-# Emotki / Naklejki
 E_WELCOME = ["<:w1:1567540850873999371>", "<:w2:1567541120861470740>", "<:w3:1567541279565291580>", "<:w4:1567541402370318427>", "<:w5:1567541561330376704>"]
 E_BOOST = ["<:b1:1567546207876939876>", "<:b2:1567546347429830836>", "<:b3:1567546492657602671>", "<:b4:1567546612773949510>"]
 
@@ -33,12 +30,11 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# --- VIEW DLA TICKETÓW ---
 class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="persistent_close_ticket_btn")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v4")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -51,7 +47,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="persistent_ticket_select_menu")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v4")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -87,8 +83,6 @@ class TicketSelect(discord.ui.Select):
                 overwrites[role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
 
         category = guild.get_channel(category_id)
-        
-        # Tworzenie kanału w wybranej kategorii
         ticket_channel = await guild.create_text_channel(
             name=f"{val}-{user.name}",
             category=category,
@@ -114,15 +108,8 @@ class TicketPanelView(discord.ui.View):
         super().__init__(timeout=None)
         self.add_item(TicketSelect())
 
-# --- EVENTY ---
-
 @bot.event
 async def on_ready():
-    if not getattr(bot, "views_loaded", False):
-        bot.add_view(TicketPanelView())
-        bot.add_view(CloseTicketView())
-        bot.views_loaded = True
-
     await bot.tree.sync()
     print(f"Zalogowano jako: {bot.user}")
 
@@ -181,8 +168,6 @@ async def on_member_update(before: discord.Member, after: discord.Member):
             embed.set_footer(text="Zayro")
             await channel.send(embed=embed)
 
-# --- KOMENDY SLASH ---
-
 @bot.tree.command(name="ticket", description="Wysyła panel ticketów na kanal docelowy.")
 async def ticket_cmd(interaction: discord.Interaction):
     if interaction.channel_id != TICKET_COMMAND_CHANNEL_ID:
@@ -198,30 +183,26 @@ async def ticket_cmd(interaction: discord.Interaction):
             "**Ticket Owner**\n*Open if you have a demand to the owners*\n\n"
             "**Ticket Support**\n*Open if you need any help*\n\n"
             "**Ticket Partner**\n*Open if you want to collaborate with us.*\n\n"
-            f"┃ **For any issues, text on** <#{TICKET_ISSUES_CHANNEL_ID}>"
+            f"┃ **For any issues, text on** <#{TICKET_TXT_CHANNEL_ID}>"
         ),
         color=discord.Color.dark_grey()
     )
     embed.set_image(url=BANNER_URL)
     embed.set_footer(text="Zayro")
 
-    # Powiadomienie tylko dla osoby wpisującej komendę
     await interaction.response.send_message("Panel ticketów został wysłany!", ephemeral=True)
-    # Wysłanie JEDNEGO panelu na docelowy kanał
     await target_channel.send(embed=embed, view=TicketPanelView())
 
 @bot.tree.command(name="bandc", description="Banuje użytkownika i wysyła log z bannerem.")
 @app_commands.checks.has_permissions(ban_members=True)
 async def bandc(interaction: discord.Interaction, user: discord.User, reason: str = "Brak powodu"):
     await interaction.guild.ban(user, reason=reason)
-
     embed = discord.Embed(title="🔨 User has been banned for life", color=discord.Color.red())
     embed.add_field(name="👤 User:", value=user.mention, inline=False)
     embed.add_field(name="🆔 ID:", value=f"`{user.id}`", inline=False)
     embed.add_field(name="🛡️ Administrator:", value=interaction.user.mention, inline=False)
     embed.add_field(name="📝 Reason:", value=f"```\n{reason}\n```", inline=False)
     embed.set_image(url=BANNER_URL)
-
     await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="unbandc", description="Odbanowuje użytkownika i wysyła log z bannerem.")
@@ -229,14 +210,12 @@ async def bandc(interaction: discord.Interaction, user: discord.User, reason: st
 async def unbandc(interaction: discord.Interaction, user_id: str, reason: str = "Brak powodu"):
     user = await bot.fetch_user(int(user_id))
     await interaction.guild.unban(user, reason=reason)
-
     embed = discord.Embed(title="🔓 User has been unbanned", color=discord.Color.green())
     embed.add_field(name="👤 User:", value=user.mention, inline=False)
     embed.add_field(name="🆔 ID:", value=f"`{user.id}`", inline=False)
     embed.add_field(name="🛡️ Administrator:", value=interaction.user.mention, inline=False)
     embed.add_field(name="📝 Reason:", value=f"```\n{reason}\n```", inline=False)
     embed.set_image(url=BANNER_URL)
-
     await interaction.response.send_message(embed=embed)
 
 TOKEN = os.getenv("DISCORD_TOKEN")
