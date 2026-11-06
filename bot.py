@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- SERWER HTTP (Musi być na głównym wątku dla Rendera) ---
+# --- SERWER HTTP (Dla Rendera i UptimeRobot) ---
 app = Flask('')
 
 @app.route('/', methods=['GET', 'HEAD'])
@@ -48,7 +48,7 @@ class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v14")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v17")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -61,7 +61,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v14")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v17")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -107,7 +107,7 @@ class TicketSelect(discord.ui.Select):
 
         pings = f"{user.mention} " + " ".join([f"<@&{r}>" for r in role_ids])
 
-        embed = discord.Embed(color=discord.Color.dark_grey())
+        embed = discord.Embed(color=discord.Color.dark_embed())
         embed.description = (
             f"**• {title_name} 🛒**\n\n"
             f"**Open date:** {discord.utils.utcnow().strftime('%d %B %Y, %H:%M')}\n"
@@ -138,11 +138,11 @@ async def on_member_join(member: discord.Member):
 
     channel = member.guild.get_channel(WELCOME_CHANNEL_ID)
     if channel:
-        emojis_str = " ".join(E_WELCOME)
+        emojis_str = "".join(E_WELCOME)
         embed = discord.Embed(
             title="New user joined us! 🙂",
             description=(
-                f"{emojis_str} **Hi {member.mention}! We're glad to have you here!**\n"
+                f"{emojis_str} **Hi {member.mention} We're glad to have you here!**\n"
                 f"> Go check out our fivem stuff!\n"
                 f"> Don't forget to read the rules!\n"
                 f"> **You're our {member.guild.member_count} member!**\n\n"
@@ -151,7 +151,7 @@ async def on_member_join(member: discord.Member):
                 f"▫️ **Username:** `{member.name}`\n"
                 f"▫️ **Joined at:** `{member.joined_at.strftime('%Y-%m-%d %H:%M:%S')}`"
             ),
-            color=discord.Color.dark_theme()
+            color=discord.Color.dark_embed()
         )
         embed.set_image(url=BANNER_URL)
         embed.set_footer(text="Zayro")
@@ -198,7 +198,7 @@ async def ticket_cmd(interaction: discord.Interaction):
             "**Ticket Partner**\n*Open if you want to collaborate with us.*\n\n"
             f"┃ **For any issues, text on** <#{TICKET_ISSUES_CHANNEL_ID}>"
         ),
-        color=discord.Color.dark_grey()
+        color=discord.Color.dark_embed()
     )
     embed.set_image(url=BANNER_URL)
     embed.set_footer(text="Zayro")
