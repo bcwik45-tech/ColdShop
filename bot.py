@@ -1,5 +1,4 @@
 import os
-import sys
 import datetime
 import threading
 from flask import Flask
@@ -10,20 +9,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- SERWER HTTP DLA UPTIMEROBOTA I RENDERA ---
+# --- SERWER HTTP (Musi być na głównym wątku dla Rendera) ---
 app = Flask('')
 
 @app.route('/')
 def home():
-    return "Bot status: ONLINE", 200
+    return "Bot is active and running!"
 
 @app.route('/health')
 def health():
     return "OK", 200
-
-def run_flask():
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
 
 # --- KONFIGURACJA BOTA ---
 BANNER_URL = "https://cdn.discordapp.com/attachments/1566913978515464246/1567544191456776314/banner_zayro.png?ex=6aec90ca&is=6aeb3f4a&hm=4c752e67ec46147355292cf08789814fab80d5e9745a772253fc392af52ef55d&"
@@ -53,7 +48,7 @@ class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v11")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v12")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -66,7 +61,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v11")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v12")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -236,15 +231,17 @@ async def unbandc(interaction: discord.Interaction, user_id: str, reason: str = 
     embed.set_image(url=BANNER_URL)
     await interaction.response.send_message(embed=embed)
 
-if __name__ == "__main__":
-    # Start web server
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
-
+def run_bot():
     token = os.getenv("DISCORD_TOKEN")
-    if not token:
-        print("ERROR: Zmienna środowiskowa DISCORD_TOKEN nie istnieje lub jest pusta!", file=sys.stderr)
-        sys.exit(1)
-    
-    bot.run(token)
+    if token:
+        bot.run(token)
+
+if __name__ == "__main__":
+    # Uruchamiamy bota Discorda w tle (w osobnym wątku)
+    bot_thread = threading.Thread(target=run_bot)
+    bot_thread.daemon = True
+    bot_thread.start()
+
+    # Flask musi działać na GŁÓWNYM WĄTKU, żeby Render zaliczył start aplikacji!
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
