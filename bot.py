@@ -49,7 +49,7 @@ class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v18")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v20")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -62,7 +62,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v18")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v20")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -139,11 +139,12 @@ async def on_member_join(member: discord.Member):
 
     channel = member.guild.get_channel(WELCOME_CHANNEL_ID)
     if channel:
-        emojis_str = "".join(E_WELCOME)
+        emojis_str = " ".join(E_WELCOME)
         embed = discord.Embed(
-            title="New user joined us! 🙂",
             description=(
-                f"{emojis_str} **Hi {member.mention} We're glad to have you here!**\n"
+                f"# New user joined us! 🙂\n\n"
+                f"{emojis_str}\n\n"
+                f"**Hi {member.mention} We're glad to have you here!**\n"
                 f"> Go check out our fivem stuff!\n"
                 f"> Don't forget to read the rules!\n"
                 f"> **You're our {member.guild.member_count} member!**\n\n"
@@ -225,35 +226,4 @@ async def unbandc(interaction: discord.Interaction, user_id: str, reason: str = 
     user = await bot.fetch_user(int(user_id))
     await interaction.guild.unban(user, reason=reason)
     embed = discord.Embed(title="🔓 User has been unbanned", color=discord.Color.green())
-    embed.add_field(name="👤 User:", value=user.mention, inline=False)
-    embed.add_field(name="🆔 ID:", value=f"`{user.id}`", inline=False)
-    embed.add_field(name="🛡️ Administrator:", value=interaction.user.mention, inline=False)
-    embed.add_field(name="📝 Reason:", value=f"```\n{reason}\n```", inline=False)
-    embed.set_image(url=BANNER_URL)
-    await interaction.response.send_message(embed=embed)
-
-def run_bot():
-    token = os.getenv("DISCORD_TOKEN")
-    if token:
-        bot.run(token)
-
-def self_ping():
-    time.sleep(30)
-    while True:
-        try:
-            requests.get("https://zayro.onrender.com", timeout=10)
-        except:
-            pass
-        time.sleep(300) # Pinguje sam siebie co 5 minut
-
-if __name__ == "__main__":
-    bot_thread = threading.Thread(target=run_bot)
-    bot_thread.daemon = True
-    bot_thread.start()
-
-    ping_thread = threading.Thread(target=self_ping)
-    ping_thread.daemon = True
-    ping_thread.start()
-
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    embed.add_field(name="👤 User:", value=user.mention, inline=False
