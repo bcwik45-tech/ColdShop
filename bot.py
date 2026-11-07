@@ -1,6 +1,7 @@
 import os
-import datetime
+import time
 import threading
+import requests
 from flask import Flask
 import discord
 from discord import app_commands
@@ -9,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- SERWER HTTP (Dla Rendera i UptimeRobot) ---
+# --- SERWER HTTP ---
 app = Flask('')
 
 @app.route('/', methods=['GET', 'HEAD'])
@@ -21,7 +22,7 @@ def health():
     return "OK", 200
 
 # --- KONFIGURACJA BOTA ---
-BANNER_URL = "https://cdn.discordapp.com/attachments/1566913978515464246/1567544191456776314/banner_zayro.png?ex=6aec90ca&is=6aeb3f4a&hm=4c752e67ec46147355292cf08789814fab80d5e9745a772253fc392af52ef55d&"
+BANNER_URL = "https://cdn.discordapp.com/attachments/1566913978515464246/1567544191456776314/banner_zayro.png"
 
 WELCOME_CHANNEL_ID = 1566913703767707670
 BOOST_CHANNEL_ID = 1566923418228760606
@@ -48,7 +49,7 @@ class CloseTicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v17")
+    @discord.ui.button(label="Close Ticket", style=discord.ButtonStyle.red, emoji="🔒", custom_id="close_ticket_btn_v18")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message("Zamykanie ticketu za 5 sekund...")
         await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
@@ -61,7 +62,7 @@ class TicketSelect(discord.ui.Select):
             discord.SelectOption(label="Support", description="Support ticket for help in our config server", emoji="❓", value="support"),
             discord.SelectOption(label="Partner", description="Ticket for partnership", emoji="🤝", value="partner"),
         ]
-        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v17")
+        super().__init__(placeholder="Select category", min_values=1, max_values=1, options=options, custom_id="ticket_select_menu_v18")
 
     async def callback(self, interaction: discord.Interaction):
         guild = interaction.guild
@@ -236,10 +237,23 @@ def run_bot():
     if token:
         bot.run(token)
 
+def self_ping():
+    time.sleep(30)
+    while True:
+        try:
+            requests.get("https://zayro.onrender.com", timeout=10)
+        except:
+            pass
+        time.sleep(300) # Pinguje sam siebie co 5 minut
+
 if __name__ == "__main__":
     bot_thread = threading.Thread(target=run_bot)
     bot_thread.daemon = True
     bot_thread.start()
+
+    ping_thread = threading.Thread(target=self_ping)
+    ping_thread.daemon = True
+    ping_thread.start()
 
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
